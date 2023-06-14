@@ -1,4 +1,5 @@
-import {validateIp, addTileLayer} from "./helpers";
+import 'babel-polyfill';
+import {validateIp, addTileLayer, getAddress, addOffset} from "./helpers";
 import L from 'leaflet'; 
 import 'leaflet/dist/leaflet.css';
 import icon from "../images/icon-location.svg";
@@ -34,9 +35,8 @@ ipInput.addEventListener("keydown", handleKey);
 
 function getData(){
     if(validateIp(ipInput.value)){
-        fetch(`https://geo.ipify.org/api/v2/country,city?apiKey=at_jhplLXpJIwHIA5XItwXL7ezGoOUFR&ipAddress=${ipInput.value}`)
-        .then(response => response.json())
-        .then(data => setInfo(data))
+        getAddress(ipInput.value)
+            .then(setInfo)
     }
 }
 
@@ -48,7 +48,6 @@ function handleKey(event){
 
 
 function setInfo(mapData){
-    console.log(mapData);
     ipInfo.innerText = mapData.ip;
     locationInfo.innerText = `${mapData.location.region}, ${mapData.location.country} ${mapData.as.asn}`;
     timezoneInfo.innerText = mapData.location.timezone;
@@ -56,7 +55,15 @@ function setInfo(mapData){
 
     map.setView([mapData.location.lat , mapData.location.lng]);
     L.marker([mapData.location.lat , mapData.location.lng], {icon: markerIcon}).addTo(map);
+
+    if(matchMedia("max-width: 1024px").matches){
+        addOffset(map);
+    }
+    
 }
 
+document.addEventListener("DOMContentLoaded", () =>{
+    getAddress('8.8.8.8').then(setInfo)
+})
 
 
